@@ -1,152 +1,73 @@
-# [BMVC 2024] Toward Highly Efficient Semantic-Guided Machine Vision for Low-Light Object Detection
-<p align="center">
-<a href="https://paperswithcode.com/sota/2d-object-detection-on-exdark"><img src="https://img.shields.io/badge/SOTA-Getting%20to%20Know%20Low%20light%20Images%20with%20The%20Exclusively%20Dark%20Dataset-brightgreen?logo=paperswithcode">
-</a>
-</p>
-<!-- <p align="center">
-<a href="https://paperswithcode.com/sota/hierarchical-text-segmentation-on-hiertext?p=hi-sam-marrying-segment-anything-model-for"><img src="https://img.shields.io/badge/SOTA-Getting%20to%20Know%20Low%20light%20Images%20with%20The%20Exclusively%20Dark%20Dataset-brightgreen?logo=paperswithcode">
-</a>
-</p> -->
-<p align="center">
-<a href="https://bmva-archive.org.uk/bmvc/2024/papers/Paper_262/paper.pdf">📄 [Paper]</a>
-<a href="https://bmva-archive.org.uk/bmvc/2024/papers/Paper_262/poster.pdf">🖼️ [Poster]</a>
-</p>
+# 项目名称
 
 
----
 
-## 🔍 Introduction
+一个**由语义引导的、基于分解和先验的联合增强与检测框架**[SPARK-YOLO](https://github.com/pynewhere/SPARK-YOLO)
 
-![intro_figure2](./figures/intro_figure.png)
 
-Object detectors trained on well-lit datasets often suffer from significant performance drops in low-light scenarios. To mitigate this issue, low-light enhancement techniques are typically employed. However, most existing methods are designed for human visual perception and fail to effectively utilize semantic information, while also incurring high computational costs.
 
-To address these limitations, we propose **EMV (Efficient semantic-guided Machine Vision-oriented module)**—a highly efficient, machine vision-oriented approach tailored for low-light object detection. EMV is capable of dynamically adapting to detection tasks via end-to-end training and emphasizes semantically relevant features. Furthermore, it enhances images in the latent space via a lightweight architecture with only **27K parameters**, achieving both efficiency and speed.
+## 概述
 
-We validate our approach through extensive experiments on the **ExDark** and **DarkFace** datasets, where EMV significantly boosts detection performance under low-light conditions.
+本项目是一个待开发的低光识别，旨在解决现有前沿低光检测采用反射光照分解，不能充分利用图像域语义和物理先验知识的情况。基于Retinex理论（光照反射分解）的方法提供了一个很好的物理模型，但它们普遍面临两大难题：**1) 对噪声的鲁棒性差，分解过程会放大噪声；2) 缺乏对图像内容的感知，对所有区域都进行无差别处理，容易导致不自然的结果。**
 
-![final_vis](./figures/final_vis.png)
+## ✨ 核心特性
 
----
+-  两阶段拆解和图像域恢复
+-  图像域语义引导和物理先验增强
+-  Retinex和图像域信息融合
+-  自适应识别检测
 
-## 🚀 Getting Started
+## 🚀 快速开始
 
-### 📁 Dataset
+### 前置条件
 
-**Step 1: Download the EXDark Dataset**
+- [待列出]
+- [其他依赖项]
 
-1. Download EXDark (with enhanced images using MBLLEN, Zero-DCE, KIND, PairLIE) in VOC format from [Baidu Netdisk](https://pan.baidu.com/s/12LXkObUyJ1qWemzRbA57RA?pwd=1234) (password: `1234`), or [Google Drive](https://drive.google.com/file/d/11TJmLxMWQazesTRXOyplwiFpteOEO9IS/view?usp=drive_link).
+### 安装步骤
 
-2. Unzip the dataset:
-   ```bash
-   unzip Exdark.zip
-   ```
+1. 克隆仓库：
 
-   The dataset is pre-split into **80% training** and **20% testing**.
-
-3. The directory structure should look like:
-   ```
-   EXDark
-   ├── JPEGImages
-   │   ├── IMGS               # Original low-light images
-   │   ├── IMGS_Kind          # Enhanced by KIND [MM 2019]
-   │   ├── IMGS_ZeroDCE       # Enhanced by ZeroDCE [CVPR 2020]
-   │   ├── IMGS_MBLLEN        # Enhanced by MBLLEN [BMVC 2018]
-   │   ├── IMGS_PairLIE       # Enhanced by PairLIE [CVPR 2023]
-   ├── Annotations
-   ├── main
-   ├── label
-   ```
-
-4. Modify the dataset path at [line 2 of this config](https://github.com/Zeng555/EMV-YOLO/blob/main/configs/_base_/datasets/exdark_yolo.py#L2) to match your local directory.
-
----
-
-### 🧱 Environment Setup
-
-**Step 1: Create Conda Environment**
-
-```bash
-conda create -n EMV-YOLO python=3.8 -y
-conda activate EMV-YOLO
+```
+git clone https://github.com/pynewhere/SPARK-YOLO.git
+cd SPARK-YOLO
 ```
 
-**Step 2: Install PyTorch (Tested on PyTorch 1.10.0)**
+2.[安装依赖/构建步骤]
 
-- **macOS**
-  ```bash
-  conda install pytorch==1.10.0 torchvision==0.11.0 torchaudio==0.10.0 -c pytorch
-  ```
-
-- **Linux / Windows**
-  - CUDA 10.2:
-    ```bash
-    conda install pytorch==1.10.0 torchvision==0.11.0 torchaudio==0.10.0 cudatoolkit=10.2 -c pytorch
-    ```
-  - CUDA 11.3:
-    ```bash
-    conda install pytorch==1.10.0 torchvision==0.11.0 torchaudio==0.10.0 cudatoolkit=11.3 -c pytorch -c conda-forge
-    ```
-  - CPU Only:
-    ```bash
-    conda install pytorch==1.10.0 torchvision==0.11.0 torchaudio==0.10.0 cpuonly -c pytorch
-    ```
-
-**Step 3: Install Other Dependencies**
-
-1. Install MMCV:
-   > Choose the correct URL matching your CUDA and PyTorch version
-   ```bash
-   pip install mmcv-full==1.4.0 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.10.0/index.html
-   ```
-
-2. Install MMDetection (2.15.1) and other requirements:
-   ```bash
-   pip install opencv-python scipy
-   pip install -r requirements/build.txt
-   pip install -v -e .
-   ```
-
----
-
-## 🏋️‍♂️ Training
-
-To train your model:
-```bash
-python tools/train.py configs/yolo/yolov3_EMV_Exdark.py
+```
+[pip install -r requirements.txt]
 ```
 
+3.[运行/启动步骤]
 
-Multi GPU:
-If you have multiple GPUs, you can opt for distributed training:
-
-Usage:
-```bash
-bash tools/dist_train.sh <CONFIG> <GPU ID>
-```
-Example:
-```bash
-bash tools/dist_train.sh configs/yolo/yolov3_EMV_Exdark.py 0,1,2,3
+```python
+[python main.py]
 ```
 
----
+## 📁 项目结构
 
-## 🧪 Testing
-
-To test your trained model:
-```bash
-python tools/test.py configs/yolo/yolov3_EMV_Exdark.py <YOUR_CHECKPOINT_PATH> --eval mAP
+```
+SPARK-YOLO/
+├── src/          # 源代码目录
+├── docs/         # 文档目录
+├── tests/        # 测试文件目录
+├── LICENSE       # 许可证文件
+└── README.md     # 项目说明文件
 ```
 
----
+## 📝 开发计划
 
-## 🙏 Acknowledgments
+-  第一阶段：基础框架搭建
+-  第二阶段：核心功能实现验证
+-  第三阶段：测试与优化
+-  第四阶段：文档完善与发布
 
-- This project is based on [MMDetection](https://mmdetection.readthedocs.io/en/latest/)
-- Part of the code is adapted from [IAT](https://github.com/cuiziteng/Illumination-Adaptive-Transformer) – special thanks to the authors!
+## 📄 许可证
 
----
+本项目采用 MIT 许可证 - 详见 [LICENSE]() 文件。
 
-## 📣 Citation 
+## 📞 联系方式
 
-If you find our work helpful, please consider citing our paper. Thank you!
+- 邮箱：1791843168@qq.com
+
